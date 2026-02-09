@@ -3,488 +3,270 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rubeton Music Player - Автоматический плеер</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/react-jinke-music-player@4.24.2/assets/index.css">
+    <title>Rubeton Music Player - Автоматический</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/react-jinke-music-player@4.27.2/assets/index.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Arial, sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); color: #fff; min-height: 100vh; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header { text-align: center; padding: 40px 20px; margin-bottom: 30px; background: rgba(0,0,0,0.3); border-radius: 20px; }
+        h1 { font-size: 3em; margin-bottom: 10px; background: linear-gradient(90deg, #00dbde, #fc00ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .player-container { background: rgba(0,0,0,0.5); border-radius: 15px; padding: 20px; margin-bottom: 30px; min-height: 500px; }
+        .instructions { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 25px; margin-top: 40px; border-left: 4px solid #00dbde; }
+        .track-item { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; }
+        footer { text-align: center; margin-top: 40px; padding: 20px; opacity: 0.7; }
         
-        body {
-            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-            color: #fff;
-            min-height: 100vh;
-            padding: 20px;
-        }
+        /* Уведомления */
+        .alert { padding: 15px; border-radius: 10px; margin: 10px 0; }
+        .alert-success { background: rgba(76, 175, 80, 0.2); border: 1px solid #4CAF50; }
+        .alert-error { background: rgba(244, 67, 54, 0.2); border: 1px solid #f44336; }
+        .alert-info { background: rgba(33, 150, 243, 0.2); border: 1px solid #2196F3; }
         
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+        /* Кнопки */
+        .btn { background: linear-gradient(90deg, #00dbde, #fc00ff); color: white; border: none; padding: 10px 20px; border-radius: 50px; cursor: pointer; margin: 5px; }
+        .btn:hover { opacity: 0.9; }
         
-        header {
-            text-align: center;
-            padding: 40px 20px;
-            margin-bottom: 30px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
+        /* Загрузка */
+        .loader { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid #00dbde; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        h1 {
-            font-size: 3em;
-            margin-bottom: 10px;
-            background: linear-gradient(90deg, #00dbde, #fc00ff);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-        }
-        
-        .subtitle {
-            font-size: 1.2em;
-            opacity: 0.8;
-            margin-bottom: 20px;
-        }
-        
-        .status-bar {
-            background: rgba(0, 0, 0, 0.4);
-            padding: 15px;
-            border-radius: 10px;
-            margin: 20px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .loading {
-            color: #00dbde;
-        }
-        
-        .success {
-            color: #4CAF50;
-        }
-        
-        .error {
-            color: #ff4757;
-        }
-        
-        .player-container {
-            background: rgba(0, 0, 0, 0.5);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            min-height: 400px;
-        }
-        
-        #music-player {
-            transition: opacity 0.3s;
-        }
-        
-        .track-list {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 20px;
-        }
-        
-        .track-item {
-            padding: 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            transition: background 0.2s;
-        }
-        
-        .track-item:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
-        
-        .track-item:last-child {
-            border-bottom: none;
-        }
-        
-        .track-icon {
-            margin-right: 15px;
-            color: #00dbde;
-            font-size: 1.2em;
-            min-width: 30px;
-        }
-        
-        .track-info {
-            flex-grow: 1;
-        }
-        
-        .track-name {
-            font-weight: bold;
-            margin-bottom: 3px;
-        }
-        
-        .track-singer {
-            font-size: 0.9em;
-            opacity: 0.8;
-        }
-        
-        .track-duration {
-            font-size: 0.85em;
-            opacity: 0.6;
-        }
-        
-        .instructions {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            padding: 25px;
-            margin-top: 40px;
-            border-left: 4px solid #00dbde;
-        }
-        
-        .instructions h3 {
-            margin-bottom: 15px;
-            color: #00dbde;
-        }
-        
-        .instructions code {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
-            display: inline-block;
-            margin: 5px 0;
-        }
-        
-        .upload-section {
-            background: rgba(0, 219, 222, 0.1);
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
-            text-align: center;
-        }
-        
-        .upload-btn {
-            background: linear-gradient(90deg, #00dbde, #fc00ff);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 50px;
-            font-size: 1em;
-            cursor: pointer;
-            margin: 10px;
-            transition: transform 0.2s;
-        }
-        
-        .upload-btn:hover {
-            transform: scale(1.05);
-        }
-        
-        footer {
-            text-align: center;
-            margin-top: 40px;
-            padding: 20px;
-            opacity: 0.7;
-            font-size: 0.9em;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .hidden {
-            display: none;
-        }
-        
-        @media (max-width: 768px) {
-            h1 { font-size: 2em; }
-            .container { padding: 10px; }
-            .status-bar { flex-direction: column; align-items: flex-start; }
-        }
+        @media (max-width: 768px) { h1 { font-size: 2em; } .container { padding: 10px; } }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>🎵 Rubeton Music Player</h1>
-            <p class="subtitle">Полностью автоматический плеер для GitHub Pages</p>
-            <p>Просто загрузи MP3 файлы в папку music/ и они появятся здесь!</p>
+            <p>Просто загрузи MP3 в папку music/</p>
         </header>
         
-        <div class="status-bar">
-            <div>
-                <span id="status-text">Загружаю список треков...</span>
-                <div id="status-details"></div>
-            </div>
-            <div>
-                <span id="track-count">0 треков</span>
-            </div>
-        </div>
+        <div id="alerts"></div>
         
         <div class="player-container">
-            <div id="music-player"></div>
-            <div id="player-loading" class="loading">Инициализация плеера...</div>
+            <div id="player-loading">
+                <div class="loader"></div>
+                <p style="text-align: center; margin-top: 10px;">Загружаю плеер...</p>
+            </div>
+            <div id="music-player" style="display: none;"></div>
         </div>
         
-        <div class="track-list hidden" id="track-list">
-            <h3>Все треки в плейлисте:</h3>
+        <div id="track-list" style="display: none;">
+            <h3>Все треки:</h3>
             <div id="track-list-container"></div>
         </div>
         
-        <div class="upload-section">
-            <h3>📤 Как добавить музыку?</h3>
-            <p>1. Перейди в свой репозиторий на GitHub</p>
-            <p>2. Загрузи файлы в папку <code>music/</code></p>
-            <p>3. Обложки (опционально) в <code>music/covers/</code> с таким же именем как трек</p>
+        <div class="instructions">
+            <h3>📌 Как это работает:</h3>
+            <p>1. Загрузи MP3 файлы в папку <code>music/</code> (только английские названия!)</p>
+            <p>2. Обложки (опционально) в <code>music/covers/</code> с таким же именем</p>
+            <p>3. Файлы автоматически появятся в плеере</p>
             
             <div style="margin-top: 20px;">
-                <button class="upload-btn" onclick="openGitHub()">📁 Открыть GitHub репозиторий</button>
-                <button class="upload-btn" onclick="refreshPlaylist()">🔄 Обновить плейлист</button>
+                <button class="btn" onclick="loadDemoTracks()">🎵 Загрузить демо-треки</button>
+                <button class="btn" onclick="refreshPlayer()">🔄 Обновить</button>
             </div>
         </div>
         
-        <div class="instructions">
-            <h3>⚙️ Как это работает:</h3>
-            <ol style="line-height: 1.8; margin-left: 20px;">
-                <li>Скрипт автоматически сканирует папку <code>music/</code> через GitHub API</li>
-                <li>Для каждого MP3 файла создаётся запись в плейлисте</li>
-                <li>Если есть файл с таким же именем в <code>music/covers/</code> — используется как обложка</li>
-                <li>Плеер автоматически обновляется при добавлении новых файлов</li>
-                <li>Для автообновления настрой GitHub Actions (инструкция в README)</li>
-            </ol>
-        </div>
-        
         <footer>
-            <p>🎵 Автоматический музыкальный плеер • Работает на GitHub Pages</p>
-            <p>Просто загружай MP3 файлы в папку music/</p>
+            <p>Автоматический плеер • Работает на GitHub Pages</p>
+            <p>Твой репозиторий: <span id="repo-name">artemoska/music</span></p>
         </footer>
     </div>
 
-    <!-- Библиотеки -->
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/react-jinke-music-player@4.24.2/dist/react-jinke-music-player.umd.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jsmediatags@3.9.7/dist/jsmediatags.min.js"></script>
-
-    <!-- Наш скрипт -->
+    <!-- React и плеер -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-jinke-music-player@4.27.2/dist/react-jinke-music-player.umd.js"></script>
+    
     <script>
         // Конфигурация
         const CONFIG = {
-            githubRepo: '', // Заполнится автоматически
-            musicFolder: 'music',
-            coversFolder: 'music/covers',
-            apiUrl: 'https://api.github.com/repos',
-            defaultCover: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop'
+            // АВТОМАТИЧЕСКОЕ ОПРЕДЕЛЕНИЕ РЕПОЗИТОРИЯ
+            getRepo: function() {
+                const host = window.location.hostname;
+                const path = window.location.pathname;
+                
+                // Если на github.io
+                if (host.includes('github.io')) {
+                    const match = path.match(/^\/([^\/]+)/);
+                    if (match) return `artemoska/${match[1]}`;
+                }
+                
+                // Если локально
+                return 'artemoska/music';
+            },
+            
+            // ПРЯМЫЕ ССЫЛКИ НА RAW ФАЙЛЫ
+            getRawUrl: function(filePath) {
+                const repo = this.getRepo();
+                return `https://raw.githubusercontent.com/${repo}/main/${filePath}`;
+            },
+            
+            // GitHub API для сканирования
+            getApiUrl: function(path) {
+                const repo = this.getRepo();
+                return `https://api.github.com/repos/${repo}/contents/${path}`;
+            }
         };
         
-        // Определяем текущий репозиторий
-        function detectGitHubRepo() {
-            const url = window.location.href;
-            const match = url.match(/github\.io\/([^\/]+\/[^\/]+)/);
-            
-            if (match && match[1]) {
-                CONFIG.githubRepo = match[1];
-                console.log('Определён репозиторий:', CONFIG.githubRepo);
-                return CONFIG.githubRepo;
-            }
-            
-            // Если не на github.io, используем демо-репозиторий
-            CONFIG.githubRepo = 'artemoska/music'; // Замени на свой
-            console.warn('Не удалось определить репозиторий, используется:', CONFIG.githubRepo);
-            return CONFIG.githubRepo;
+        // Уведомления
+        function showAlert(message, type = 'info') {
+            const alerts = document.getElementById('alerts');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = message;
+            alerts.appendChild(alert);
+            setTimeout(() => alert.remove(), 5000);
         }
         
-        // Получаем список файлов через GitHub API
+        // 📁 ФУНКЦИЯ: Сканируем папку music/
         async function scanMusicFolder() {
-            updateStatus('Сканирую папку с музыкой...', 'loading');
+            showAlert('🔍 Сканирую папку music/...', 'info');
             
             try {
-                const repo = detectGitHubRepo();
-                const apiUrl = `${CONFIG.apiUrl}/${repo}/contents/${CONFIG.musicFolder}`;
-                
+                const apiUrl = CONFIG.getApiUrl('music');
                 const response = await fetch(apiUrl);
                 
                 if (!response.ok) {
-                    throw new Error(`GitHub API error: ${response.status}`);
+                    if (response.status === 404) {
+                        showAlert('Папка music/ не найдена. Создайте её и загрузите MP3 файлы.', 'error');
+                        return [];
+                    }
+                    throw new Error(`GitHub API: ${response.status}`);
                 }
                 
                 const files = await response.json();
-                
-                // Фильтруем только MP3 файлы
                 const mp3Files = files.filter(file => 
                     file.name.toLowerCase().endsWith('.mp3') && 
                     file.type === 'file'
                 );
                 
-                updateStatus(`Найдено ${mp3Files.length} MP3 файлов`, 'success');
+                showAlert(`🎵 Найдено ${mp3Files.length} MP3 файлов`, 'success');
                 
-                // Получаем список обложек
-                const covers = await getCoversList();
+                // Получаем обложки
+                const covers = await getCovers();
                 
                 // Создаём плейлист
-                const playlist = await createPlaylist(mp3Files, covers);
-                
-                return playlist;
+                return await createPlaylist(mp3Files, covers);
                 
             } catch (error) {
                 console.error('Ошибка сканирования:', error);
-                updateStatus('Ошибка загрузки треков. Использую демо-плейлист.', 'error');
+                showAlert('⚠️ Использую демо-треки', 'error');
                 return getDemoPlaylist();
             }
         }
         
-        // Получаем список обложек
-        async function getCoversList() {
+        // 🖼️ ФУНКЦИЯ: Получаем обложки
+        async function getCovers() {
             try {
-                const repo = detectGitHubRepo();
-                const apiUrl = `${CONFIG.apiUrl}/${repo}/contents/${CONFIG.coversFolder}`;
-                
+                const apiUrl = CONFIG.getApiUrl('music/covers');
                 const response = await fetch(apiUrl);
                 
-                if (!response.ok) {
-                    return {};
-                }
+                if (!response.ok) return {};
                 
                 const files = await response.json();
                 const covers = {};
                 
                 files.forEach(file => {
-                    if (file.type === 'file' && /\.(jpg|jpeg|png|gif)$/i.test(file.name)) {
-                        const nameWithoutExt = file.name.replace(/\.[^/.]+$/, '');
-                        covers[nameWithoutExt.toLowerCase()] = file.download_url;
+                    if (file.type === 'file') {
+                        const name = file.name.replace(/\.[^/.]+$/, '').toLowerCase();
+                        covers[name] = CONFIG.getRawUrl(`music/covers/${file.name}`);
                     }
                 });
                 
                 return covers;
-                
             } catch (error) {
                 return {};
             }
         }
         
-        // Создаём плейлист из файлов
+        // 🎵 ФУНКЦИЯ: Создаём плейлист
         async function createPlaylist(mp3Files, covers) {
-            updateStatus('Обработка треков...', 'loading');
-            
             const playlist = [];
             
             for (const file of mp3Files) {
-                const track = await createTrackInfo(file, covers);
-                if (track) {
-                    playlist.push(track);
-                }
+                const track = await createTrack(file, covers);
+                if (track) playlist.push(track);
             }
             
             // Сортируем по имени
             playlist.sort((a, b) => a.name.localeCompare(b.name));
-            
             return playlist;
         }
         
-        // Создаём информацию о треке
-        async function createTrackInfo(file, covers) {
+        // 📄 ФУНКЦИЯ: Создаём трек
+        async function createTrack(file, covers) {
             const nameWithoutExt = file.name.replace(/\.mp3$/i, '');
-            const fileNameLower = nameWithoutExt.toLowerCase();
+            const rawUrl = CONFIG.getRawUrl(`music/${file.name}`);
             
-            // Пытаемся получить теги из MP3
-            let tags = { title: nameWithoutExt, artist: 'Неизвестный исполнитель' };
-            
-            try {
-                tags = await getAudioTags(file.download_url);
-            } catch (e) {
-                console.log(`Не удалось прочитать теги для ${file.name}:`, e.message);
+            // Проверяем русские символы
+            if (/[а-яА-Я]/.test(file.name)) {
+                console.warn(`Русские символы в названии: ${file.name}`);
             }
             
-            // Определяем обложку
-            let coverUrl = CONFIG.defaultCover;
-            if (covers[fileNameLower]) {
-                coverUrl = covers[fileNameLower];
-            } else if (tags.picture) {
-                coverUrl = tags.picture;
+            // Обложка
+            let coverUrl = 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop';
+            const coverName = nameWithoutExt.toLowerCase();
+            if (covers[coverName]) {
+                coverUrl = covers[coverName];
             }
+            
+            // Определяем длительность
+            const duration = await getAudioDuration(rawUrl);
             
             return {
-                name: tags.title || nameWithoutExt,
-                singer: tags.artist || 'Неизвестный исполнитель',
+                name: nameWithoutExt,
+                singer: 'Исполнитель',
                 cover: coverUrl,
-                musicSrc: file.download_url,
-                duration: tags.duration || 0,
-                fileName: file.name
+                musicSrc: rawUrl,
+                duration: duration,
+                file: file.name
             };
         }
         
-        // Читаем теги MP3 файла
-        function getAudioTags(url) {
-            return new Promise((resolve, reject) => {
-                jsmediatags.read(url, {
-                    onSuccess: function(tag) {
-                        const tags = tag.tags;
-                        const result = {
-                            title: tags.title || '',
-                            artist: tags.artist || '',
-                            album: tags.album || '',
-                            year: tags.year || '',
-                            genre: tags.genre || ''
-                        };
-                        
-                        // Получаем обложку
-                        if (tags.picture) {
-                            const base64String = arrayBufferToBase64(tags.picture.data);
-                            result.picture = `data:${tags.picture.format};base64,${base64String}`;
-                        }
-                        
-                        // Получаем длительность
-                        const audio = new Audio();
-                        audio.src = url;
-                        audio.addEventListener('loadedmetadata', () => {
-                            result.duration = Math.round(audio.duration);
-                            resolve(result);
-                        });
-                        
-                        audio.addEventListener('error', () => {
-                            resolve(result);
-                        });
-                        
-                    },
-                    onError: function(error) {
-                        reject(error);
-                    }
-                });
+        // ⏱️ ФУНКЦИЯ: Получаем длительность аудио
+        function getAudioDuration(url) {
+            return new Promise((resolve) => {
+                const audio = new Audio();
+                audio.src = url;
+                audio.onloadedmetadata = () => {
+                    resolve(Math.round(audio.duration));
+                };
+                audio.onerror = () => {
+                    resolve(0);
+                };
             });
         }
         
-        function arrayBufferToBase64(buffer) {
-            let binary = '';
-            const bytes = new Uint8Array(buffer);
-            for (let i = 0; i < bytes.byteLength; i++) {
-                binary += String.fromCharCode(bytes[i]);
-            }
-            return window.babeltoa ? window.babeltoa(binary) : btoa(binary);
-        }
-        
-        // Демо-плейлист на случай ошибки
+        // 🎧 ФУНКЦИЯ: Загружаем демо-треки
         function getDemoPlaylist() {
             return [
                 {
-                    name: "Пример трека 1",
-                    singer: "Исполнитель",
-                    cover: CONFIG.defaultCover,
+                    name: "Демо трек 1",
+                    singer: "Пример исполнителя",
+                    cover: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
                     musicSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
                     duration: 203
                 },
                 {
-                    name: "Пример трека 2",
-                    singer: "Исполнитель",
-                    cover: CONFIG.defaultCover,
+                    name: "Демо трек 2",
+                    singer: "Пример исполнителя",
+                    cover: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&h=400&fit=crop",
                     musicSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
                     duration: 189
                 }
             ];
         }
         
-        // Инициализация плеера
+        // 🎮 ФУНКЦИЯ: Инициализация плеера
         function initPlayer(audioList) {
+            if (!window.ReactJkMusicPlayer || !window.ReactJkMusicPlayer.default) {
+                showAlert('Ошибка загрузки плеера. Обнови страницу.', 'error');
+                return;
+            }
+            
             document.getElementById('player-loading').style.display = 'none';
-            document.getElementById('music-player').style.opacity = '1';
+            document.getElementById('music-player').style.display = 'block';
             
             const Player = window.ReactJkMusicPlayer.default;
             
@@ -492,111 +274,117 @@
                 audioLists: audioList,
                 theme: 'dark',
                 mode: 'full',
-                responsive: true,
                 autoPlay: false,
+                responsive: true,
                 showMediaSession: true,
                 toggleMode: true,
-                drag: true,
-                remember: true,
-                showMiniModeCover: true,
-                showPlay: true,
-                showReload: true,
-                showPlayMode: true,
                 showThemeSwitch: true,
-                showLyric: false,
+                showPlayMode: true,
                 showDownload: false,
+                showLyric: false,
+                defaultPlayMode: 'order',
+                quietUpdate: true,
+                clearPriorAudioLists: true,
+                autoPlayInitLoadPlayList: false,
                 mobileMediaQuery: '(max-width: 768px)',
-                defaultPosition: { bottom: '120px', right: '50px' },
-                onAudioListsChange: (currentPlayId, audioLists, audioInfo) => {
-                    console.log('Трек изменён:', audioInfo.name);
-                }
+                defaultPosition: { bottom: '100px', right: '50px' }
             });
             
             ReactDOM.render(playerElement, document.getElementById('music-player'));
             
             // Показываем список треков
             renderTrackList(audioList);
-            document.getElementById('track-list').classList.remove('hidden');
+            document.getElementById('track-list').style.display = 'block';
             
-            updateStatus(`Плеер готов! Загружено ${audioList.length} треков`, 'success');
-            document.getElementById('track-count').textContent = `${audioList.length} треков`;
+            showAlert(`✅ Плеер готов! ${audioList.length} треков`, 'success');
+            document.getElementById('repo-name').textContent = CONFIG.getRepo();
         }
         
-        // Показываем список треков
+        // 📋 ФУНКЦИЯ: Показываем список треков
         function renderTrackList(audioList) {
             const container = document.getElementById('track-list-container');
             
-            const trackItems = audioList.map((track, index) => `
+            if (audioList.length === 0) {
+                container.innerHTML = '<p style="text-align: center; padding: 20px;">Нет треков. Загрузи MP3 в папку music/</p>';
+                return;
+            }
+            
+            const items = audioList.map((track, index) => `
                 <div class="track-item" onclick="playTrack(${index})" style="cursor: pointer;">
-                    <div class="track-icon">${index + 1}</div>
-                    <div class="track-info">
-                        <div class="track-name">${track.name}</div>
-                        <div class="track-singer">${track.singer}</div>
-                    </div>
-                    <div class="track-duration">
-                        ${track.duration ? formatTime(track.duration) : '--:--'}
+                    <div style="margin-right: 15px; color: #00dbde;">${index + 1}</div>
+                    <div>
+                        <strong>${track.name}</strong><br>
+                        <small>${track.singer} • ${track.duration ? formatTime(track.duration) : '--:--'}</small>
                     </div>
                 </div>
             `).join('');
             
-            container.innerHTML = trackItems;
+            container.innerHTML = items;
         }
         
         function formatTime(seconds) {
             const mins = Math.floor(seconds / 60);
-            const secs = Math.floor(seconds % 60);
+            const secs = seconds % 60;
             return `${mins}:${secs.toString().padStart(2, '0')}`;
         }
         
         function playTrack(index) {
-            // Эта функция будет работать после инициализации плеера
-            const player = document.querySelector('.react-jinke-music-player');
-            if (player && player.audio) {
-                // Плеер сам обработает клик через event listener
-                console.log('Воспроизведение трека', index);
+            // Активируем трек в плеере
+            const player = document.querySelector('.music-player-audio');
+            if (player) {
+                // Плеер сам обработает клик
             }
         }
         
-        function updateStatus(text, type) {
-            const statusEl = document.getElementById('status-text');
-            const detailsEl = document.getElementById('status-details');
-            
-            statusEl.textContent = text;
-            statusEl.className = type || '';
-            
-            if (type === 'loading') {
-                detailsEl.innerHTML = '<small>Работаю...</small>';
-            } else if (type === 'error') {
-                detailsEl.innerHTML = '<small>Проверь консоль для деталей</small>';
-            } else {
-                detailsEl.innerHTML = '';
-            }
+        // 🎵 Загрузка демо-треков
+        function loadDemoTracks() {
+            showAlert('Загружаю демо-треки...', 'info');
+            const demo = getDemoPlaylist();
+            initPlayer(demo);
         }
         
-        function openGitHub() {
-            const repo = detectGitHubRepo();
-            if (repo && !repo.includes('YOUR_USERNAME')) {
-                window.open(`https://github.com/${repo}`, '_blank');
-            } else {
-                alert('Сначала замени YOUR_USERNAME/YOUR_REPO на свой репозиторий в коде!');
-            }
-        }
-        
-        function refreshPlaylist() {
+        function refreshPlayer() {
             location.reload();
         }
         
-        // Запускаем при загрузке страницы
+        // 🚀 ЗАПУСК ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
         document.addEventListener('DOMContentLoaded', async () => {
             try {
+                // 1. Ждём загрузки React и плеера
+                await waitForDependencies();
+                
+                // 2. Сканируем папку с музыкой
                 const playlist = await scanMusicFolder();
-                initPlayer(playlist);
+                
+                // 3. Если нет треков, используем демо
+                if (playlist.length === 0) {
+                    showAlert('Нет MP3 файлов. Использую демо-треки.', 'info');
+                    initPlayer(getDemoPlaylist());
+                } else {
+                    // 4. Запускаем плеер с найденными треками
+                    initPlayer(playlist);
+                }
+                
             } catch (error) {
-                console.error('Критическая ошибка:', error);
-                updateStatus('Ошибка инициализации плеера', 'error');
+                console.error('Ошибка инициализации:', error);
+                showAlert('Критическая ошибка. Использую демо-версию.', 'error');
                 initPlayer(getDemoPlaylist());
             }
         });
+        
+        // ⏳ ФУНКЦИЯ: Ждём загрузки библиотек
+        function waitForDependencies() {
+            return new Promise((resolve) => {
+                const check = () => {
+                    if (window.React && window.ReactDOM && window.ReactJkMusicPlayer) {
+                        resolve();
+                    } else {
+                        setTimeout(check, 100);
+                    }
+                };
+                check();
+            });
+        }
     </script>
 </body>
 </html>
