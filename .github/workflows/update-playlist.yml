@@ -1,0 +1,44 @@
+name: Update Music Playlist
+
+on:
+  push:
+    paths:
+      - 'music/**'
+      - 'music/covers/**'
+  schedule:
+    - cron: '0 */6 * * *'  # Каждые 6 часов
+  workflow_dispatch:  # Ручной запуск
+
+jobs:
+  update-playlist:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    
+    - name: Generate playlist
+      run: |
+        node playlist.js
+        
+    - name: Commit and push changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # Проверяем, есть ли изменения
+        if git diff --quiet HEAD playlist.json; then
+          echo "Нет изменений в плейлисте"
+        else
+          git add playlist.json playlist-view.html
+          git commit -m "🤖 Автообновление плейлиста [skip ci]"
+          git push
+          echo "Плейлист обновлён!"
+        fi
